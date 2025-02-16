@@ -8,7 +8,10 @@ void clearConsole() {
 void display(const vector<vector<int>> &board);
 void updateValidPositions();
 bool isSameBoard(vector<vector<int>> &board, vector<vector<int>> &copy);
-
+void mergeLeft(vector<int> &row);
+void slideLeft(vector<int> &row);
+void rotateRight(vector<vector<int>> &board);
+void rotateLeft(vector<vector<int>> &board);
 
 char dir;
 vector<vector<int>> board(4, vector<int>(4, 0));
@@ -59,6 +62,31 @@ void newgame() {
 
 }
 
+void rotateRight(vector<vector<int>> &board) {
+    for (int i=0; i<4; i++) {
+        for (int j=i+1; j<4; j++) {
+            swap(board[i][j], board[j][i]);
+        }
+    }
+
+    for (auto &row : board) {
+        reverse(row.begin(), row.end());
+    }
+}
+
+void rotateLeft(vector<vector<int>> &board) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = i + 1; j < 4; ++j) {
+            swap(board[i][j], board[j][i]);
+        }
+    }
+
+    for (int j = 0; j < 4; ++j) {
+        for (int i = 0, k = 4 - 1; i < k; ++i, --k) {
+            swap(board[i][j], board[k][j]);
+        }
+    }
+}
 
 
 bool isSameBoard(vector<vector<int>> &board, vector<vector<int>> &dup) {
@@ -106,12 +134,30 @@ void display(const vector<vector<int>> &board) {
 }
 
 
+void mergeLeft(vector<int> &row) {
+    for (int i=0; i<3; i++) {
+        if (row[i] == row[i+1]) {
+            row[i] = 2 * row[i];
+            row[i+1] = 0;
+        }
+    }
+}
+
 void mergeRight(vector<int> &row) {
     for (int i=3; i>0; --i) {
         if (row[i] == row[i-1]) {
             row[i] = 2 * row[i];
             row[i-1] = 0;
         }
+    }
+}
+
+
+
+
+void reverse(vector<vector<int>> &board) {
+    for (auto &row : board) {
+        reverse(row.begin(), row.end());
     }
 }
 
@@ -127,11 +173,29 @@ void slideRight(vector<int> &row) {
     row = modified;
 }
 
+void slideLeft(vector<int> &row) {
+    int n = count(row.begin(), row.end(), 0);
+    vector<int> modified;
+    for (int i = 0; i < row.size(); i++) {
+        if (row[i] != 0) {
+            modified.push_back(row[i]);
+        }
+    }
+    for (int i=0; i<n; i++) modified.push_back(0);
+
+    row = modified;
+}
+
 
 void slide(vector<vector<int>> &board, char ch) {
     switch (ch) {
         case 'a':
         case 'A':
+            for (auto &row : board) {
+                slideLeft(row);
+                mergeLeft(row);
+                slideLeft(row);
+            }
             break;
 
         case 'd':
@@ -141,6 +205,28 @@ void slide(vector<vector<int>> &board, char ch) {
                 mergeRight(row);
                 slideRight(row);
             }
+            break;
+
+        case 'w':
+        case 'W':
+            rotateRight(board);
+            for (auto &row : board) {
+                slideRight(row);
+                mergeRight(row);
+                slideRight(row);
+            }
+            rotateLeft(board);
+            break;
+
+        case 's':
+        case 'S':
+            rotateRight(board);
+            for (auto &row : board) {
+                slideLeft(row);
+                mergeLeft(row);
+                slideLeft(row);
+            }
+            rotateLeft(board);
             break;
 
         default:
@@ -157,9 +243,11 @@ int main() {
 
     display(board);
     while (canMove()) {
+        cout << endl;
         cin >> dir;
         vector<vector<int>> dup = board;
         slide(board, dir);
+
         if (!isSameBoard(board, dup)) {
             updateValidPositions();
             generateNewPosition();
