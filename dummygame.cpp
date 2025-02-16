@@ -7,6 +7,8 @@ void clearConsole() {
 
 void display(const vector<vector<int>> &board);
 void updateValidPositions();
+bool isSameBoard(vector<vector<int>> &board, vector<vector<int>> &copy);
+
 
 char dir;
 vector<vector<int>> board(4, vector<int>(4, 0));
@@ -57,6 +59,19 @@ void newgame() {
 
 }
 
+
+
+bool isSameBoard(vector<vector<int>> &board, vector<vector<int>> &dup) {
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            if (board[i][j] != dup[i][j]) return false;
+        }
+    }
+
+    return true;
+}
+
+
 void updateValidPositions(){
     emptyIndices.clear();
     for (int i = 0; i < 4; i++) {
@@ -101,7 +116,7 @@ void mergeRight(vector<int> &row) {
 }
 
 
-void slideright(vector<int> &row) {
+void slideRight(vector<int> &row) {
     int n = count(row.begin(), row.end(), 0);
     vector<int> modified(n, 0);
     for (int i = 0; i < row.size(); i++) {
@@ -122,8 +137,9 @@ void slide(vector<vector<int>> &board, char ch) {
         case 'd':
         case 'D':
             for (auto &row : board) {
-                slideright(row);
+                slideRight(row);
                 mergeRight(row);
+                slideRight(row);
             }
             break;
 
@@ -142,10 +158,16 @@ int main() {
     display(board);
     while (canMove()) {
         cin >> dir;
+        vector<vector<int>> dup = board;
         slide(board, dir);
-        updateValidPositions();
-        generateNewPosition();
-        display(board);
+        if (!isSameBoard(board, dup)) {
+            updateValidPositions();
+            generateNewPosition();
+            display(board);
+        } else {
+            display(board);
+        }
+        
     }
 
     
