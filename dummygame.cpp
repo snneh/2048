@@ -121,7 +121,15 @@ void generateNewPosition(){
 }
 
 bool canMove() {
-    return !emptyIndices.empty();
+    bool flag = false;
+    for (auto row : board) {
+        auto it = find(row.begin(), row.end(), 2048);
+        if (it != row.end()) {
+            flag = true;
+            break;
+        }
+    }
+    return (flag || !emptyIndices.empty());
 }
 
 void display(const vector<vector<int>> &board) {
